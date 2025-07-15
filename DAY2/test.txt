@@ -1,0 +1,2 @@
+This is my first file created using cmd
+Appended new text in file
