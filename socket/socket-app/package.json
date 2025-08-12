@@ -1,0 +1,18 @@
+{
+  "name": "socket-app-backend",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "startapp": "nodemon app.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^7.6.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

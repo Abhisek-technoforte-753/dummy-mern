@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO Test</title>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+  <h1>Socket.IO Basic Test</h1>
+  
+  <h2 id="formTitle">Add User</h2>
+  <form id="userForm">
+    <input id="name" placeholder="Name" required>
+    <input id="email" placeholder="Email" required type="email">
+    <input id="age" placeholder="Age" type="number">
+    <button type="submit">Add User</button>
+    <button type="button" id="cancelEditBtn" style="display:none; margin-left:8px;">Cancel Edit</button>
+  </form>
+
+  <h2>Users</h2>
+  <ul id="userList"></ul>
+
+  <script>
+    const socket = io('http://localhost:5001');
+    let editingUserId = null;
+
+    // Add or Edit user
+    document.getElementById('userForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const user = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        age: document.getElementById('age').value
+      };
+      if (editingUserId) {
+        user._id = editingUserId;
+        socket.emit('editUser', user);
+      } else {
+        socket.emit('addUser', user);
+      }
+    });
+
+    // Cancel edit
+    document.getElementById('cancelEditBtn').onclick = function() {
+      resetForm();
+    };
+
+    // Get all users on connect
+    socket.on('connect', () => {
+      socket.emit('getUsers');
+    });
+
+    // Listen for updated user list
+    socket.on('users', (users) => {
+      const userList = document.getElementById('userList');
+      userList.innerHTML = '';
+      users.forEach(user => {
+        userList.innerHTML += `<li><b>${user.name}</b> (${user.email}, Age: ${user.age}) <button onclick="editUser('${user._id}', '${user.name}', '${user.email}', '${user.age}')">Edit</button> <button onclick="deleteUser('${user._id}')">Delete</button></li>`;
+      });
+    });
+
+    // Listen for add/edit/delete success
+    socket.on('userAdded', (user) => {
+      resetForm();
+      socket.emit('getUsers'); 
+    });
+    socket.on('userEdited', (user) => {
+      resetForm();
+      socket.emit('getUsers'); 
+    });
+    socket.on('userDeleted', (id) => {
+      socket.emit('getUsers'); 
+    });
+
+    function deleteUser(id) {
+      socket.emit('deleteUser', id);
+    }
+
+    function editUser(id, name, email, age) {
+      editingUserId = id;
+      document.getElementById('name').value = name;
+      document.getElementById('email').value = email;
+      document.getElementById('age').value = age;
+      document.getElementById('formTitle').innerText = 'Edit User';
+      document.querySelector('#userForm button[type="submit"]').innerText = 'Update User';
+      document.getElementById('cancelEditBtn').style.display = '';
+    }
+
+    function resetForm() {
+      editingUserId = null;
+      document.getElementById('userForm').reset();
+      document.getElementById('formTitle').innerText = 'Add User';
+      document.querySelector('#userForm button[type="submit"]').innerText = 'Add User';
+      document.getElementById('cancelEditBtn').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
